@@ -1,0 +1,174 @@
+{
+  "name": "Productos",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        -192
+      ],
+      "id": "e4126607-9cdf-4202-a4ca-1db57bd53dcd",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=={{ $json.texto_usuario }}",
+        "options": {
+          "systemMessage": "Eres el Experto Asesor Comercial. Saluda muy cortésmente. Para dar información de ventas o catálogo, es OBLIGATORIO que el usuario te dé su DPI (13 dígitos) y PIN (4 dígitos). Úsalos en la herramienta 'Validar . Si es correcto, usa la herramienta Catálogo para responder sus dudas.\"\n\nSi la herramienta dice AUTHENTICATED: Dile que es correcto y ayúdalo con su consulta.\nSi la herramienta dice ERROR: Dile amablemente que sus datos son incorrectos y que intente de nuevo.\nSi el usuario te da números que parecen su DPI y PIN, TOMA ESOS NÚMEROS Y USA EXCLUSIVAMENTE LA HERRAMIENTA validar. ¡NO SE LOS VUELVAS A PEDIR!\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -160,
+        -64
+      ],
+      "id": "c473473e-e875-46b6-a76e-eedb38227886",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        128
+      ],
+      "id": "f3809ce6-c1cc-4af6-af1e-5cf058e884da",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1Swp3KrPoFppdzdQ",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=={{ $json.numero_telefono }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        208
+      ],
+      "id": "1bfafea5-1634-42ae-a139-c2f2a2d748fd",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n    catalogo: [\n      { categoria: \"Electrodomésticos\", marcas: \"Whirlpool, LG, Samsung, Mabe\" },\n      { categoria: \"Línea Blanca\", descripcion: \"Refrigeradoras, Estufas, Microondas\" },\n      { categoria: \"Muebles\", tipos: \"Salas, Comedores, Roperos\" },\n      { categoria: \"Camas\", tamaños: \"Imperiales, Matrimoniales, Queen, King\" },\n      { categoria: \"Motocicletas\", marcas: \"Honda, Yamaha, Suzuki, Bajaj, Italika\" }\n    ],\n    contacto: \"Para precios exactos, invite al usuario a las sucursales o a llamar al PBX.\"\n};\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        176
+      ],
+      "id": "753d2a6c-c9d7-4ce5-acc2-53ac39b20482",
+      "name": "catalogo productos"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool ALWAYS when the user provides their DPI and PIN numbers. You MUST use this tool to validate their identity.",
+        "operation": "executeQuery",
+        "query": "SELECT status \nFROM hr.user_status \nWHERE LOWER(remote_jid) = LOWER('{{ $('When Executed by Another Workflow').first().json.numero_telefono }}') \nLIMIT 1\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        80,
+        112
+      ],
+      "id": "44c44b65-8320-45a7-a7a9-6aab395ebe5d",
+      "name": "Validar",
+      "credentials": {
+        "postgres": {
+          "id": "STFftpDWykrg0KOB",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "catalogo productos": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1abd9498-bc9b-449f-9081-050b245c0430",
+  "meta": {
+    "instanceId": "7d5d1ff85275b6a0d10e42c332a4f7d3d004dea4b72ff3fa3f55f302d90a54b6"
+  },
+  "id": "95VVUhYl0woolnTk",
+  "tags": []
+}

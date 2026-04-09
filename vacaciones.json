@@ -1,0 +1,158 @@
+{
+  "name": "vacaciones",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -576,
+        -256
+      ],
+      "id": "86fb1bdd-f79d-4bee-b4e3-a54ff8181974",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "= ={{ $('When Executed by Another Workflow').item.json.texto_usuario }}",
+        "options": {
+          "systemMessage": "Eres el Asistente de Vacaciones de Incomel. EJECUTA ESTAS REGLAS COMO UN ROBOT, PASO A PASO:\n\nREVISA LO PRIMERO EN EL MENSAJE DEL USUARIO: ¿El usuario te acaba de dar un DPI y un PIN? A) SI NO LOS TIENE: Dile \"Hola, para poder consultar tu cuenta por favor envíame tu DPI de 13 dígitos y tu PIN de 4 dígitos\". (Y YA. ¡Detén toda acción aquí!). B) SI EL USUARIO SÍ LOS ENVIÓ: Pasa automáticamente al Paso 2.\n\nCuando reconozcas los números, OLVIDA SALUDAR. Inmediatamente ejecuta la herramienta 'ConsultarVacaciones' enviándole el DPI y PIN del usuario. ESTO NO ES OPCIONAL.\n\nLee el mensaje de la Herramienta. Repíteselo con cortesía al usuario (Si le dice autorizado, o si le dice intruso)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -96,
+        -192
+      ],
+      "id": "2e931f98-dbfc-4753-a158-3a1ba5d4759e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        64
+      ],
+      "id": "f8f64f33-5738-4b5f-86b6-5d4df3bd6765",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1Swp3KrPoFppdzdQ",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Úsalo SIEMPRE que el usuario pregunte por sus vacaciones, saldo de días o cómo solicitarlas.",
+        "jsCode": "return {\n    dias_disponibles: 12,\n    estado: \"Activo\",\n    procedimiento: \"Para registrar tus vacaciones, debes llenar el formulario F-01 en el portal interno de RRHH con 15 días de anticipación.\"\n};\n",
+        "specifyInputSchema": true,
+        "schemaType": "manual"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        48
+      ],
+      "id": "c6d7317d-4ae5-48dd-bfc8-a3d961508470",
+      "name": "ConsultarVacaciones"
+    },
+    {
+      "parameters": {
+        "description": "Usala SIEMPRE que te den DPI y PIN. Mándale en la variable 'query' el DPI y el PIN que te dio el usuario, con un espacio en medio. (¡Y listo, no busques ningún botón de schema porque como vimos, esa herramienta no lo trae, y no le hace falta!).",
+        "workflowId": {
+          "__rl": true,
+          "value": "x1KFFkzjwwvW5GKg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/x1KFFkzjwwvW5GKg",
+          "cachedResultName": "Validar DPI"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        80
+      ],
+      "id": "40dd6126-2fdd-4746-828c-230db1528bca",
+      "name": "validar_credenciales"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ConsultarVacaciones": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validar_credenciales": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c62654c6-56f8-4b47-8e14-1c8fa12e853e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7d5d1ff85275b6a0d10e42c332a4f7d3d004dea4b72ff3fa3f55f302d90a54b6"
+  },
+  "id": "C2P6y1C6vE9uwFMr",
+  "tags": []
+}
